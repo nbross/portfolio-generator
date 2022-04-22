@@ -1,6 +1,6 @@
-const fs = require('fs');
 const inquirer = require('inquirer');
 const generatePage = require('./src/page-template')
+const { writeFile, copyFile } = require('./utils/generate-site')
 
 const promptUser = () => {
     return inquirer.prompt([
@@ -61,12 +61,28 @@ Add a New Project
             {
                 type: 'input',
                 name: 'name',
-                message: 'What is the name of your project?'
+                message: 'What is the name of your project? (Required)',
+                validate: nameInput => {
+                    if (nameInput) {
+                        return true;
+                    } else {
+                        console.log('You need to enter a project name!')
+                        return false;
+                    }
+                }
             },
             {
                 type: 'input',
                 name: 'description',
-                message: 'Provide a description of the project (Required)'
+                message: 'Provide a description of the project (Required)',
+                validate: descriptionInput => {
+                    if (descriptionInput) {
+                        return true;
+                    } else {
+                        console.log('You need to enter a project description!');
+                        return false;
+                    }
+                }
             },
             {
                 type: 'checkbox',
@@ -77,7 +93,15 @@ Add a New Project
             {
                 type: 'input',
                 name: 'link',
-                message: 'Enter the GitHub link to your project. (Required)'
+                message: 'Enter the GitHub link to your project. (Required)',
+                validate: linkInput => {
+                    if (linkInput) {
+                        return true;
+                    } else {
+                        console.log('You need to enter a project GitHub link!');
+                        return false;
+                    }
+                }
             },
             {
                 type: 'confirm',
@@ -105,12 +129,18 @@ Add a New Project
 promptUser()
     .then(promptProject)
     .then(portfolioData => {
-        const pageHTML = generatePage(portfolioData);
-
-        fs.writeFile('index.html', pageHTML, err => {
-            if (err) throw new Error(err);
-
-            console.log('Portfolio complete! Check out index.html to see the output!');
-        });
+        return generatePage(portfolioData);
+    })
+    .then(pageHTML => {
+        return writeFile(pageHTML);
+    })
+    .then(writeFileResponse => {
+        console.log(writeFileResponse);
+        return copyFile();
+    })
+    .then(copyFileResponse => {
+        console.log(copyFileResponse);
+    })
+    .catch(err => {
+        console.log(err);
     });
-
